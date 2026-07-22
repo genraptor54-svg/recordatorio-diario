@@ -9,19 +9,21 @@ const { readDB, writeDB } = require('./db');
 const PORT = process.env.PORT || 3000;
 
 // --- VAPID (llaves para notificaciones push) ---
+// Si faltan, la app sigue funcionando igual (recordatorios, historial, seguimientos)
+// pero sin poder mandar notificaciones push reales.
 const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY;
 const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
+const PUSH_ENABLED = !!(VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY);
 
-if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
-  console.error('Faltan VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY en el archivo .env');
-  process.exit(1);
+if (!PUSH_ENABLED) {
+  console.warn('⚠️  Faltan VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY — la app sigue funcionando, pero sin notificaciones push.');
+} else {
+  webpush.setVapidDetails(
+    'mailto:admin@example.com',
+    VAPID_PUBLIC_KEY,
+    VAPID_PRIVATE_KEY
+  );
 }
-
-webpush.setVapidDetails(
-  'mailto:admin@example.com',
-  VAPID_PUBLIC_KEY,
-  VAPID_PRIVATE_KEY
-);
 
 const app = express();
 app.use(cors());
@@ -54,6 +56,7 @@ function logHistory(db, r, event, note) {
 
 // Llave pública para que el navegador se suscriba
 app.get('/api/vapid-public-key', (req, res) => {
+  if (!PUSH_ENABLED) return res.status(503).json({ error: 'Notificaciones push no configuradas en el servidor' });
   res.json({ publicKey: VAPID_PUBLIC_KEY });
 });
 
@@ -219,6 +222,7 @@ app.get('/api/history', (req, res) => {
 
 // ---------- Envío de notificaciones ----------
 async function sendPushToAll(db, payload) {
+  if (!PUSH_ENABLED) return;
   const body = JSON.stringify(payload);
   const stillValid = [];
   for (const sub of db.subscriptions) {
