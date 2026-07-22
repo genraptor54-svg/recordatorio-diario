@@ -42,6 +42,7 @@ function isPastDeadline(r) {
 }
 function logHistory(db, r, event, note) {
   db.history.unshift({
+    id: 'h_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
     ts: Date.now(),
     reminderId: r.id,
     title: r.title,
@@ -218,6 +219,24 @@ app.delete('/api/reminders/:id', (req, res) => {
 app.get('/api/history', (req, res) => {
   const db = readDB();
   res.json(db.history);
+});
+
+// Borrar una entrada puntual del historial
+app.delete('/api/history/:id', (req, res) => {
+  const db = readDB();
+  const before = db.history.length;
+  db.history = db.history.filter(h => h.id !== req.params.id);
+  if (db.history.length === before) return res.status(404).json({ error: 'No encontrado' });
+  writeDB(db);
+  res.json({ ok: true });
+});
+
+// Vaciar todo el historial
+app.delete('/api/history', (req, res) => {
+  const db = readDB();
+  db.history = [];
+  writeDB(db);
+  res.json({ ok: true });
 });
 
 // ---------- Envío de notificaciones ----------

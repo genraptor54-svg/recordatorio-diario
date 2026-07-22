@@ -500,8 +500,11 @@ function dayLabel(ts) {
 }
 
 function renderHistorial() {
+  const clearBtn = history.length > 0
+    ? `<div style="margin-bottom:14px;"><button class="del-inline" onclick="clearHistory()">Vaciar historial</button></div>`
+    : '';
   if (history.length === 0) return '<div class="empty">Todavía no hay historial.</div>';
-  let html = '', lastDay = null;
+  let html = clearBtn, lastDay = null;
   history.forEach(h => {
     const label = dayLabel(h.ts);
     if (label !== lastDay) { html += `<div class="hist-day-label">${label}</div>`; lastDay = label; }
@@ -510,9 +513,22 @@ function renderHistorial() {
       <div class="hist-icon ${h.event}">${HIST_ICONS[h.event]}</div>
       <div class="hist-text"><div>${HIST_LABELS[h.event]}: ${escapeHTML(h.title)}</div><div class="hist-sub">${h.category} · prioridad ${h.priority}</div></div>
       <div class="hist-time">${time}</div>
+      <button class="del-btn" onclick="deleteHistoryEntry('${h.id}')">×</button>
     </div>`;
   });
   return html;
+}
+
+async function deleteHistoryEntry(id) {
+  await fetch('/api/history/' + id, { method: 'DELETE' });
+  await refreshAll();
+}
+
+async function clearHistory() {
+  if (!confirm('¿Vaciar todo el historial? Esto no se puede deshacer.')) return;
+  await fetch('/api/history', { method: 'DELETE' });
+  await refreshAll();
+  showToast('Historial vaciado ✓');
 }
 
 function renderSeguimientosForm() {
