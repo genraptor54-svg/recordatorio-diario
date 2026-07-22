@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recordatorios</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1B1B2F; --navy-deep: #0F172E; --paper: #FBF7F0;
+    --amber: #E8A33D; --coral: #E1553F; --sage: #6B9080; --indigo: #3D5A80;
+    --line: rgba(27,27,47,0.12);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--navy-deep);
+    background-image: radial-gradient(circle at 15% 8%, rgba(232,163,61,0.08), transparent 40%),
+      radial-gradient(circle at 85% 92%, rgba(107,144,128,0.08), transparent 40%);
+    font-family: 'Inter', sans-serif; color: var(--paper); min-height: 100vh; padding: 32px 16px 80px;
+  }
+  .wrap { max-width: 640px; margin: 0 auto; }
+  header { margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+  .eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--amber); display: block; margin-bottom: 6px; }
+  h1 { font-family: 'Fraunces', serif; font-weight: 700; font-size: 38px; margin: 0 0 4px; letter-spacing: -0.01em; }
+  .sub { font-size: 14px; color: rgba(251,247,240,0.55); }
+  .header-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+  .alert-btn, .install-btn { font-family: 'JetBrains Mono', monospace; font-size: 12px; background: transparent; border: 1.5px solid rgba(251,247,240,0.3); color: var(--paper); border-radius: 100px; padding: 8px 14px; cursor: pointer; white-space: nowrap; }
+  .alert-btn.on { border-color: var(--amber); color: var(--amber); }
+  .install-btn { display: none; }
+  .install-btn.show { display: inline-block; }
+  .status-card { background: rgba(251,247,240,0.06); border: 1px solid rgba(251,247,240,0.12); border-radius: 4px; padding: 16px 18px; margin-bottom: 24px; }
+  .status-title { font-family: 'Fraunces', serif; font-weight: 600; font-size: 15px; margin: 0 0 10px; }
+  .status-bar { display: flex; height: 8px; border-radius: 100px; overflow: hidden; background: rgba(251,247,240,0.1); margin-bottom: 12px; }
+  .status-bar span { height: 100%; }
+  .status-legend { display: flex; flex-wrap: wrap; gap: 14px; }
+  .status-legend .item { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: rgba(251,247,240,0.7); display: flex; align-items: center; gap: 6px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+  .add-card { background: var(--paper); color: var(--ink); border-radius: 4px; padding: 18px; margin-bottom: 28px; box-shadow: 0 12px 30px rgba(0,0,0,0.25); position: relative; }
+  .add-card::before { content: ''; position: absolute; top: -7px; left: 22px; width: 14px; height: 14px; border-radius: 50%; background: var(--coral); box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+  .add-row { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+  input[type="text"], input[type="date"], input[type="time"] { font-family: 'Inter', sans-serif; border: none; border-bottom: 2px solid var(--line); background: transparent; padding: 8px 2px; font-size: 15px; color: var(--ink); outline: none; flex: 1; min-width: 110px; }
+  input:focus { border-bottom-color: var(--amber); }
+  .chip-row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .chip { font-family: 'JetBrains Mono', monospace; font-size: 11px; padding: 5px 10px; border-radius: 100px; border: 1.5px solid var(--line); cursor: pointer; background: transparent; color: var(--ink); opacity: 0.55; }
+  .chip.active { opacity: 1; border-color: currentColor; }
+  .chip[data-p="alta"] { color: var(--coral); }
+  .chip[data-p="media"] { color: var(--amber); }
+  .chip[data-p="baja"] { color: var(--sage); }
+  .chip[data-c="personal"] { color: var(--sage); }
+  .chip[data-c="trabajo"] { color: var(--indigo); }
+  .add-btn { font-family: 'Fraunces', serif; font-weight: 600; font-size: 15px; background: var(--ink); color: var(--paper); border: none; border-radius: 4px; padding: 10px 20px; cursor: pointer; }
+  .filter-row { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+  .filter-tab { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.04em; background: transparent; border: 1px solid rgba(251,247,240,0.2); color: rgba(251,247,240,0.6); border-radius: 100px; padding: 6px 13px; cursor: pointer; }
+  .filter-tab.active { border-color: var(--amber); color: var(--amber); }
+  .section-label { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(251,247,240,0.45); margin: 24px 0 12px; display: flex; align-items: center; gap: 10px; }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: rgba(251,247,240,0.15); }
+  .note { background: var(--paper); color: var(--ink); border-radius: 3px; padding: 14px 16px; margin-bottom: 10px; display: flex; align-items: flex-start; gap: 12px; box-shadow: 0 4px 14px rgba(0,0,0,0.18); border-left: 4px solid var(--sage); }
+  .note.p-alta { border-left-color: var(--coral); }
+  .note.p-media { border-left-color: var(--amber); }
+  .note.p-baja { border-left-color: var(--sage); }
+  .note.done { opacity: 0.55; }
+  .note.overdue:not(.done) { background: #FBEDE9; }
+  .check { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--ink); flex-shrink: 0; margin-top: 2px; cursor: pointer; display: flex; align-items: center; justify-content: center; background: transparent; }
+  .check.checked-ontime { background: var(--sage); border-color: var(--sage); }
+  .check.checked-late { background: var(--coral); border-color: var(--coral); }
+  .check svg { width: 12px; height: 12px; }
+  .note-body { flex: 1; min-width: 0; }
+  .cat-tag { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase; padding: 1px 7px; border-radius: 100px; color: #fff; }
+  .cat-tag.personal { background: var(--sage); }
+  .cat-tag.trabajo { background: var(--indigo); }
+  .note-title { font-family: 'Fraunces', serif; font-weight: 600; font-size: 17px; margin: 6px 0 3px; word-break: break-word; }
+  .note.done .note-title { text-decoration: line-through; }
+  .note-meta { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: rgba(27,27,47,0.55); }
+  .note-meta.late-tag { color: var(--coral); font-weight: 600; }
+  .note-meta.ontime-tag { color: var(--sage); font-weight: 600; }
+  .del-btn { background: none; border: none; color: rgba(27,27,47,0.35); cursor: pointer; font-size: 18px; line-height: 1; padding: 2px 4px; }
+  .del-btn:hover { color: var(--coral); }
+  .dots-btn { background: none; border: none; color: rgba(27,27,47,0.4); cursor: pointer; font-size: 16px; letter-spacing: 1px; padding: 4px 8px; border-radius: 100px; align-self: flex-start; }
+  .dots-btn:hover { background: rgba(27,27,47,0.08); color: var(--ink); }
+  .overdue-badge { font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; color: var(--coral); margin-top: 4px; }
+
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: flex; align-items: flex-end; justify-content: center; z-index: 50; }
+  .modal-card { position: relative; background: var(--navy-deep); color: var(--paper); width: 100%; max-width: 640px; max-height: 85vh; overflow-y: auto; border-radius: 12px 12px 0 0; padding: 22px 20px 30px; border-top: 3px solid var(--amber); }
+  .modal-title { font-family: 'Fraunces', serif; font-weight: 700; font-size: 20px; margin: 0 0 2px; }
+  .modal-sub { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: rgba(251,247,240,0.5); margin: 0 0 18px; }
+  .modal-close { position: absolute; top: 16px; right: 18px; background: none; border: none; color: rgba(251,247,240,0.6); font-size: 22px; cursor: pointer; }
+  .modal-section-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(251,247,240,0.45); margin: 20px 0 10px; }
+  .reschedule-box { background: var(--paper); color: var(--ink); border-radius: 6px; padding: 14px; }
+  .reschedule-row { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+  .reschedule-row input { flex: 1; min-width: 110px; font-family: 'Inter', sans-serif; border: 1.5px solid var(--line); border-radius: 4px; padding: 7px 9px; font-size: 14px; }
+  .reschedule-preview { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: rgba(27,27,47,0.6); margin-bottom: 10px; }
+  .reschedule-box textarea { width: 100%; font-family: 'Inter', sans-serif; font-size: 13.5px; border: 1.5px solid var(--line); border-radius: 4px; padding: 7px 9px; min-height: 50px; margin-bottom: 10px; resize: vertical; }
+  .modal-actions { display: flex; gap: 8px; margin-top: 4px; }
+  .modal-actions .del-inline { background: none; border: 1.5px solid rgba(225,85,63,0.4); color: var(--coral); border-radius: 100px; padding: 7px 14px; font-family: 'JetBrains Mono', monospace; font-size: 12px; cursor: pointer; }
+  .empty { text-align: center; padding: 40px 20px; color: rgba(251,247,240,0.4); font-family: 'Fraunces', serif; font-size: 16px; font-style: italic; }
+  .hist-day-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(251,247,240,0.4); margin: 18px 0 8px; }
+  .hist-item { display: flex; align-items: center; gap: 10px; padding: 9px 4px; border-bottom: 1px solid rgba(251,247,240,0.08); font-size: 13.5px; }
+  .hist-icon { width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+  .hist-icon.creado { background: rgba(232,163,61,0.2); color: var(--amber); }
+  .hist-icon.completado_a_tiempo { background: rgba(107,144,128,0.25); color: var(--sage); }
+  .hist-icon.completado_tarde { background: rgba(225,85,63,0.2); color: var(--coral); }
+  .hist-icon.reabierto { background: rgba(251,247,240,0.12); color: rgba(251,247,240,0.7); }
+  .hist-icon.eliminado { background: rgba(251,247,240,0.08); color: rgba(251,247,240,0.4); }
+  .hist-text { flex: 1; min-width: 0; }
+  .hist-sub, .hist-time { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(251,247,240,0.4); }
+  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--paper); padding: 10px 18px; border-radius: 6px; font-size: 13px; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; }
+  .toast.show { opacity: 1; }
+
+  /* Seguimientos */
+  .progress-form { background: var(--paper); color: var(--ink); border-radius: 4px; padding: 16px; margin-bottom: 22px; box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
+  .progress-form select, .progress-form textarea {
+    width: 100%; font-family: 'Inter', sans-serif; font-size: 14px; color: var(--ink);
+    border: 1.5px solid var(--line); border-radius: 4px; padding: 8px 10px; margin-bottom: 10px; outline: none; resize: vertical;
+  }
+  .progress-form select:focus, .progress-form textarea:focus { border-color: var(--amber); }
+  .progress-form textarea { min-height: 60px; font-family: 'Inter', sans-serif; }
+  .progress-hint { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: rgba(27,27,47,0.5); margin: 0 0 10px; }
+
+  .timeline { position: relative; padding-left: 26px; margin-top: 8px; }
+  .timeline::before { content: ''; position: absolute; left: 6px; top: 6px; bottom: 6px; width: 2px; background: rgba(251,247,240,0.15); }
+  .tl-day-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(251,247,240,0.4); margin: 18px 0 10px -26px; padding-left: 26px; }
+  .tl-item { position: relative; margin-bottom: 16px; }
+  .tl-dot { position: absolute; left: -26px; top: 3px; width: 13px; height: 13px; border-radius: 50%; border: 2px solid var(--navy-deep); }
+  .tl-dot.personal { background: var(--sage); }
+  .tl-dot.trabajo { background: var(--indigo); }
+  .tl-card { background: var(--paper); color: var(--ink); border-radius: 3px; padding: 10px 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+  .tl-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+  .tl-title { font-family: 'Fraunces', serif; font-weight: 600; font-size: 14.5px; }
+  .tl-time { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(27,27,47,0.45); white-space: nowrap; }
+  .tl-text { font-size: 13.5px; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <span class="eyebrow">hoy es <span id="today-label"></span></span>
+      <h1>Recordatorios</h1>
+      <div class="sub">Con notificaciones reales, aunque cierres la app.</div>
+    </div>
+    <div class="header-btns">
+      <button class="install-btn" id="install-btn">📲 instalar app</button>
+      <button class="alert-btn" id="alert-btn">🔔 activar alertas</button>
+    </div>
+  </header>
+
+  <div class="status-card">
+    <p class="status-title">Cómo va tu día</p>
+    <div class="status-bar" id="status-bar"></div>
+    <div class="status-legend" id="status-legend"></div>
+  </div>
+
+  <div class="add-card">
+    <div class="add-row"><input type="text" id="title-input" placeholder="¿Qué necesitas recordar?" maxlength="120"></div>
+    <div class="add-row">
+      <input type="date" id="date-input">
+      <input type="time" id="time-input">
+    </div>
+    <div class="chip-row" id="category-chips">
+      <button class="chip active" data-c="personal">● personal</button>
+      <button class="chip" data-c="trabajo">● trabajo</button>
+    </div>
+    <div class="chip-row" id="priority-chips">
+      <button class="chip active" data-p="media">● prioridad media</button>
+      <button class="chip" data-p="alta">● alta</button>
+      <button class="chip" data-p="baja">● baja</button>
+    </div>
+    <button class="add-btn" id="add-btn">Agregar recordatorio</button>
+  </div>
+
+  <div class="filter-row">
+    <button class="filter-tab active" data-f="todos">Todos</button>
+    <button class="filter-tab" data-f="personal">Personal</button>
+    <button class="filter-tab" data-f="trabajo">Trabajo</button>
+    <button class="filter-tab" data-f="historial">📜 Historial</button>
+    <button class="filter-tab" data-f="seguimientos">🧭 Seguimientos</button>
+  </div>
+
+  <div id="lists"></div>
+</div>
+<div class="toast" id="toast"></div>
+<div id="modal-root"></div>
+
+<script>
+let reminders = [];
+let history = [];
+let progressEntries = [];
+let selectedPriority = 'media';
+let selectedCategory = 'personal';
+let activeFilter = 'todos';
+let deferredInstallPrompt = null;
+
+document.getElementById('today-label').textContent = new Date().toLocaleDateString('es-CO', { day: 'numeric', month: 'long' });
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ---------- Instalación PWA ----------
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  document.getElementById('install-btn').classList.add('show');
+});
+document.getElementById('install-btn').addEventListener('click', async () => {
+  if (!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt = null;
+  document.getElementById('install-btn').classList.remove('show');
+});
+
+// ---------- Push notifications ----------
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)));
+}
+
+async function setupPush() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    alert('Este navegador no soporta notificaciones push.');
+    return;
+  }
+  const reg = await navigator.serviceWorker.register('sw.js');
+  const permission = await Notification.requestPermission();
+  if (permission !== 'granted') return;
+
+  const { publicKey } = await fetch('/api/vapid-public-key').then(r => r.json());
+  const subscription = await reg.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: urlBase64ToUint8Array(publicKey)
+  });
+
+  await fetch('/api/subscribe', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(subscription)
+  });
+
+  document.getElementById('alert-btn').classList.add('on');
+  document.getElementById('alert-btn').textContent = '🔔 alertas activas';
+  showToast('Notificaciones activadas ✓');
+}
+
+document.getElementById('alert-btn').addEventListener('click', setupPush);
+
+// ---------- Chips ----------
+document.querySelectorAll('#priority-chips .chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('#priority-chips .chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    selectedPriority = chip.dataset.p;
+  });
+});
+document.querySelectorAll('#category-chips .chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('#category-chips .chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    selectedCategory = chip.dataset.c;
+  });
+});
+document.querySelectorAll('.filter-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    activeFilter = tab.dataset.f;
+    render();
+  });
+});
+
+// ---------- API ----------
+async function loadReminders() {
+  reminders = await fetch('/api/reminders').then(r => r.json());
+}
+async function loadHistory() {
+  history = await fetch('/api/history').then(r => r.json());
+}
+async function loadProgress() {
+  progressEntries = await fetch('/api/progress').then(r => r.json());
+}
+async function addProgress() {
+  const taskSelect = document.getElementById('progress-task-select');
+  const textEl = document.getElementById('progress-input');
+  const reminderId = taskSelect.value;
+  const text = textEl.value.trim();
+  if (!reminderId) { taskSelect.focus(); return; }
+  if (!text) { textEl.focus(); return; }
+  await fetch('/api/reminders/' + reminderId + '/progress', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text })
+  });
+  textEl.value = '';
+  await refreshAll();
+  showToast('Avance guardado ✓');
+}
+async function addReminder() {
+  const titleEl = document.getElementById('title-input');
+  const dateEl = document.getElementById('date-input');
+  const timeEl = document.getElementById('time-input');
+  const title = titleEl.value.trim();
+  if (!title) { titleEl.focus(); return; }
+
+  await fetch('/api/reminders', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      title, date: dateEl.value || null, time: timeEl.value || null,
+      priority: selectedPriority, category: selectedCategory
+    })
+  });
+  titleEl.value = ''; dateEl.value = ''; timeEl.value = '';
+  await refreshAll();
+  titleEl.focus();
+}
+async function toggleDone(id) {
+  await fetch('/api/reminders/' + id + '/toggle', { method: 'PATCH' });
+  await refreshAll();
+}
+async function deleteReminder(id) {
+  await fetch('/api/reminders/' + id, { method: 'DELETE' });
+  await refreshAll();
+}
+async function refreshAll() {
+  await Promise.all([loadReminders(), loadHistory(), loadProgress()]);
+  render();
+  // si el modal de una tarea está abierto, refresca su contenido también
+  if (currentTimelineTaskId) await openTaskTimeline(currentTimelineTaskId, true);
+}
+
+// ---------- Modal de linea de tiempo por tarea ----------
+let currentTimelineTaskId = null;
+
+const TL_ICONS = { creado: '＋', completado_a_tiempo: '✓', completado_tarde: '✕', reabierto: '↺', eliminado: '🗑', reprogramada: '📅' };
+const TL_LABELS = { creado: 'Creada', completado_a_tiempo: 'Completada a tiempo', completado_tarde: 'Completada tarde', reabierto: 'Reabierta', eliminado: 'Eliminada', reprogramada: 'Reprogramada' };
+
+async function openTaskTimeline(id, silent) {
+  currentTimelineTaskId = id;
+  const data = await fetch('/api/reminders/' + id + '/timeline').then(r => r.json());
+  const r = data.reminder;
+  const entries = data.timeline;
+
+  let entriesHtml = entries.map(e => {
+    const time = new Date(e.ts).toLocaleString('es-CO', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+    if (e.kind === 'avance') {
+      return `<div class="hist-item"><div class="hist-icon creado">📝</div><div class="hist-text"><div>${escapeHTML(e.text)}</div><div class="hist-sub">avance</div></div><div class="hist-time">${time}</div></div>`;
+    }
+    return `<div class="hist-item"><div class="hist-icon ${e.event}">${TL_ICONS[e.event] || '•'}</div><div class="hist-text"><div>${TL_LABELS[e.event] || e.event}${e.note ? ': ' + escapeHTML(e.note) : ''}</div></div><div class="hist-time">${time}</div></div>`;
+  }).join('') || '<div class="empty">Todavía no hay nada registrado para esta tarea.</div>';
+
+  const modalHtml = `
+    <div class="modal-backdrop" onclick="if(event.target===this) closeTaskTimeline()">
+      <div class="modal-card">
+        <button class="modal-close" onclick="closeTaskTimeline()">×</button>
+        <p class="modal-title">${escapeHTML(r.title)}</p>
+        <p class="modal-sub">${r.category} · prioridad ${r.priority} · ${fmtMeta(r)}</p>
+
+        <div class="reschedule-box">
+          <div class="reschedule-row">
+            <input type="date" id="modal-date-input" value="${r.date || ''}">
+            <input type="time" id="modal-time-input" value="${r.time || ''}">
+          </div>
+          <textarea id="modal-reason-input" placeholder="Motivo del cambio (opcional)"></textarea>
+          <button class="add-btn" onclick="submitReschedule('${r.id}')">Guardar fecha</button>
+        </div>
+
+        <div class="progress-form" style="margin-top:14px;">
+          <p class="progress-hint">Deja un avance para esta tarea</p>
+          <textarea id="modal-progress-input" placeholder="¿Qué avanzaste? ¿En qué quedó?"></textarea>
+          <button class="add-btn" onclick="submitModalProgress('${r.id}')">Agregar avance</button>
+        </div>
+
+        <p class="modal-section-label">Línea de tiempo de esta tarea</p>
+        ${entriesHtml}
+
+        <div class="modal-actions">
+          <button class="del-inline" onclick="deleteReminder('${r.id}'); closeTaskTimeline();">Eliminar tarea</button>
+        </div>
+      </div>
+    </div>`;
+  document.getElementById('modal-root').innerHTML = modalHtml;
+}
+
+function closeTaskTimeline() {
+  currentTimelineTaskId = null;
+  document.getElementById('modal-root').innerHTML = '';
+}
+
+async function submitReschedule(id) {
+  const date = document.getElementById('modal-date-input').value || null;
+  const time = document.getElementById('modal-time-input').value || null;
+  const reason = document.getElementById('modal-reason-input').value.trim();
+  await fetch('/api/reminders/' + id + '/reschedule', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ date, time, reason })
+  });
+  await refreshAll();
+  showToast('Fecha actualizada ✓');
+}
+
+async function submitModalProgress(id) {
+  const textEl = document.getElementById('modal-progress-input');
+  const text = textEl.value.trim();
+  if (!text) { textEl.focus(); return; }
+  await fetch('/api/reminders/' + id + '/progress', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text })
+  });
+  await refreshAll();
+  showToast('Avance guardado ✓');
+}
+
+// ---------- Helpers de fecha/estado ----------
+function deadlineOf(r) { if (!r.date) return null; return new Date(r.date + 'T' + (r.time || '23:59')); }
+function isPastDeadline(r) { const dl = deadlineOf(r); if (!dl) return false; return new Date() > dl; }
+function isOverdue(r) { return !r.done && isPastDeadline(r); }
+function isToday(r) { if (!r.date) return false; return r.date === new Date().toISOString().slice(0,10); }
+function fmtMeta(r) {
+  let parts = [];
+  if (r.date) parts.push(new Date(r.date + 'T00:00:00').toLocaleDateString('es-CO', { day: 'numeric', month: 'short' }));
+  else parts.push('sin fecha límite');
+  if (r.time) parts.push(r.time);
+  return parts.join(' · ');
+}
+function escapeHTML(s) { const div = document.createElement('div'); div.textContent = s; return div.innerHTML; }
+
+function daysOverdue(r) {
+  if (!isOverdue(r)) return 0;
+  const dl = deadlineOf(r);
+  const ms = new Date() - dl;
+  return Math.max(1, Math.floor(ms / (1000 * 60 * 60 * 24)) || 1);
+}
+
+function noteHTML(r) {
+  const overdueClass = isOverdue(r) ? 'overdue' : '';
+  const doneClass = r.done ? 'done' : '';
+  let checkClass = '', checkIcon = '';
+  if (r.done && r.completedStatus === 'ontime') {
+    checkClass = 'checked-ontime';
+    checkIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="#FBF7F0" stroke-width="3"><path d="M5 12l5 5L20 7"/></svg>';
+  } else if (r.done && r.completedStatus === 'late') {
+    checkClass = 'checked-late';
+    checkIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="#FBF7F0" stroke-width="3"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+  }
+  let statusTag = '';
+  if (r.done && r.completedStatus === 'ontime') statusTag = '<span class="note-meta ontime-tag">· a tiempo</span>';
+  if (r.done && r.completedStatus === 'late') statusTag = '<span class="note-meta late-tag">· completado tarde</span>';
+  let overdueBadge = '';
+  if (!r.done && isOverdue(r)) {
+    const days = daysOverdue(r);
+    overdueBadge = `<div class="overdue-badge">🔴 atrasada hace ${days} día${days === 1 ? '' : 's'}</div>`;
+  }
+
+  return `<div class="note p-${r.priority} ${doneClass} ${overdueClass}">
+    <div class="check ${checkClass}" onclick="toggleDone('${r.id}')">${checkIcon}</div>
+    <div class="note-body">
+      <span class="cat-tag ${r.category}">${r.category}</span>
+      <p class="note-title">${escapeHTML(r.title)}</p>
+      <div class="note-meta">${fmtMeta(r)}</div>
+      ${statusTag}
+      ${overdueBadge}
+    </div>
+    <button class="dots-btn" onclick="openTaskTimeline('${r.id}')">•••</button>
+  </div>`;
+}
+
+function renderStatusDashboard(list) {
+  const total = list.length;
+  const ontime = list.filter(r => r.done && r.completedStatus === 'ontime').length;
+  const late = list.filter(r => r.done && r.completedStatus === 'late').length;
+  const overdue = list.filter(r => isOverdue(r)).length;
+  const pending = list.filter(r => !r.done && !isOverdue(r)).length;
+  const bar = document.getElementById('status-bar');
+  const legend = document.getElementById('status-legend');
+  if (total === 0) { bar.innerHTML = ''; legend.innerHTML = '<div class="item">Todavía no hay recordatorios para medir.</div>'; return; }
+  const pct = n => (n / total * 100).toFixed(1) + '%';
+  bar.innerHTML = `<span style="width:${pct(ontime)}; background:var(--sage)"></span><span style="width:${pct(late)}; background:var(--coral)"></span><span style="width:${pct(overdue)}; background:var(--amber)"></span><span style="width:${pct(pending)}; background:rgba(251,247,240,0.25)"></span>`;
+  legend.innerHTML = `<div class="item"><span class="dot" style="background:var(--sage)"></span>${ontime} a tiempo</div><div class="item"><span class="dot" style="background:var(--coral)"></span>${late} tarde</div><div class="item"><span class="dot" style="background:var(--amber)"></span>${overdue} atrasados</div><div class="item"><span class="dot" style="background:rgba(251,247,240,0.25)"></span>${pending} pendientes</div>`;
+}
+
+const HIST_ICONS = { creado: '＋', completado_a_tiempo: '✓', completado_tarde: '✕', reabierto: '↺', eliminado: '🗑' };
+const HIST_LABELS = { creado: 'Creaste', completado_a_tiempo: 'Completaste a tiempo', completado_tarde: 'Completaste tarde', reabierto: 'Reabriste', eliminado: 'Eliminaste' };
+
+function dayLabel(ts) {
+  const d = new Date(ts), today = new Date(), yesterday = new Date(); yesterday.setDate(today.getDate() - 1);
+  const sameDay = (a,b) => a.toDateString() === b.toDateString();
+  if (sameDay(d, today)) return 'Hoy';
+  if (sameDay(d, yesterday)) return 'Ayer';
+  return d.toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function renderHistorial() {
+  if (history.length === 0) return '<div class="empty">Todavía no hay historial.</div>';
+  let html = '', lastDay = null;
+  history.forEach(h => {
+    const label = dayLabel(h.ts);
+    if (label !== lastDay) { html += `<div class="hist-day-label">${label}</div>`; lastDay = label; }
+    const time = new Date(h.ts).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+    html += `<div class="hist-item">
+      <div class="hist-icon ${h.event}">${HIST_ICONS[h.event]}</div>
+      <div class="hist-text"><div>${HIST_LABELS[h.event]}: ${escapeHTML(h.title)}</div><div class="hist-sub">${h.category} · prioridad ${h.priority}</div></div>
+      <div class="hist-time">${time}</div>
+    </div>`;
+  });
+  return html;
+}
+
+function renderSeguimientosForm() {
+  const options = reminders.map(r => `<option value="${r.id}">${escapeHTML(r.title)} (${r.category})</option>`).join('');
+  return `<div class="progress-form">
+    <p class="progress-hint">Elige la tarea y deja el avance de cómo va</p>
+    <select id="progress-task-select">
+      <option value="">— selecciona una tarea —</option>
+      ${options}
+    </select>
+    <textarea id="progress-input" placeholder="¿Qué avanzaste? ¿En qué quedó?"></textarea>
+    <button class="add-btn" id="progress-add-btn">Agregar avance</button>
+  </div>`;
+}
+
+function renderTimeline(entries) {
+  if (entries.length === 0) {
+    return '<div class="empty">Todavía no hay avances registrados. Deja el primero arriba.</div>';
+  }
+  let html = '<div class="timeline">', lastDay = null;
+  entries.forEach(e => {
+    const label = dayLabel(e.ts);
+    if (label !== lastDay) { html += `<div class="tl-day-label">${label}</div>`; lastDay = label; }
+    const time = new Date(e.ts).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+    html += `<div class="tl-item">
+      <div class="tl-dot ${e.category}"></div>
+      <div class="tl-card">
+        <div class="tl-top">
+          <span class="tl-title">${escapeHTML(e.title)}</span>
+          <span class="tl-time">${time}</span>
+        </div>
+        <div class="tl-text">${escapeHTML(e.text)}</div>
+      </div>
+    </div>`;
+  });
+  html += '</div>';
+  return html;
+}
+
+function render() {
+  if (activeFilter === 'seguimientos') {
+    renderStatusDashboard(reminders);
+    document.getElementById('lists').innerHTML = renderSeguimientosForm() + renderTimeline(progressEntries);
+    document.getElementById('progress-add-btn').addEventListener('click', addProgress);
+    return;
+  }
+  if (activeFilter === 'historial') {
+    renderStatusDashboard(reminders);
+    document.getElementById('lists').innerHTML = renderHistorial();
+    return;
+  }
+  const filtered = activeFilter === 'todos' ? reminders : reminders.filter(r => r.category === activeFilter);
+  renderStatusDashboard(filtered);
+  const overdue = filtered.filter(r => isOverdue(r));
+  const today = filtered.filter(r => !r.done && !isOverdue(r) && isToday(r));
+  const upcoming = filtered.filter(r => !r.done && !isOverdue(r) && !isToday(r));
+  const done = filtered.filter(r => r.done);
+  let html = '';
+  if (filtered.length === 0) html = '<div class="empty">Todavía no hay nada anotado aquí.</div>';
+  else {
+    if (overdue.length) html += `<div class="section-label">Atrasados</div>` + overdue.map(noteHTML).join('');
+    if (today.length) html += `<div class="section-label">Hoy</div>` + today.map(noteHTML).join('');
+    if (upcoming.length) html += `<div class="section-label">Próximos</div>` + upcoming.sort((a,b)=>(a.date||'9999').localeCompare(b.date||'9999')).map(noteHTML).join('');
+    if (done.length) html += `<div class="section-label">Completados</div>` + done.map(noteHTML).join('');
+  }
+  document.getElementById('lists').innerHTML = html;
+}
+
+document.getElementById('add-btn').addEventListener('click', addReminder);
+document.getElementById('title-input').addEventListener('keydown', e => { if (e.key === 'Enter') addReminder(); });
+
+refreshAll();
+setInterval(refreshAll, 60000);
+</script>
+</body>
+</html>
