@@ -55,6 +55,8 @@
   .filter-row { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
   .filter-tab { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; letter-spacing: 0.04em; background: transparent; border: 1px solid rgba(251,247,240,0.2); color: rgba(251,247,240,0.6); border-radius: 100px; padding: 6px 13px; cursor: pointer; }
   .filter-tab.active { border-color: var(--amber); color: var(--amber); }
+  .clear-hist-btn { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; background: none; border: 1px solid rgba(225,85,63,0.4); color: var(--coral); border-radius: 100px; padding: 6px 13px; cursor: pointer; margin-left: auto; }
+  .clear-hist-btn:hover { background: rgba(225,85,63,0.12); }
   .section-label { font-family: 'JetBrains Mono', monospace; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(251,247,240,0.45); margin: 24px 0 12px; display: flex; align-items: center; gap: 10px; }
   .section-label::after { content: ''; flex: 1; height: 1px; background: rgba(251,247,240,0.15); }
   .note { background: var(--paper); color: var(--ink); border-radius: 3px; padding: 14px 16px; margin-bottom: 10px; display: flex; align-items: flex-start; gap: 12px; box-shadow: 0 4px 14px rgba(0,0,0,0.18); border-left: 4px solid var(--sage); }
@@ -171,16 +173,18 @@
     <button class="add-btn" id="add-btn">Agregar recordatorio</button>
   </div>
 
-  <div class="filter-row">
+  <div class="filter-row" style="align-items:center;">
     <button class="filter-tab active" data-f="todos">Todos</button>
     <button class="filter-tab" data-f="personal">Personal</button>
     <button class="filter-tab" data-f="trabajo">Trabajo</button>
     <button class="filter-tab" data-f="historial">📜 Historial</button>
     <button class="filter-tab" data-f="seguimientos">🧭 Seguimientos</button>
+    <button class="clear-hist-btn" id="clear-hist-inline-btn" onclick="clearHistory()" style="display:none;">Vaciar</button>
   </div>
 
   <div id="lists"></div>
 </div>
+
 <div class="toast" id="toast"></div>
 <div id="modal-root"></div>
 
@@ -500,11 +504,8 @@ function dayLabel(ts) {
 }
 
 function renderHistorial() {
-  const clearBtn = history.length > 0
-    ? `<div style="margin-bottom:14px;"><button class="del-inline" onclick="clearHistory()">Vaciar historial</button></div>`
-    : '';
   if (history.length === 0) return '<div class="empty">Todavía no hay historial.</div>';
-  let html = clearBtn, lastDay = null;
+  let html = '', lastDay = null;
   history.forEach(h => {
     const label = dayLabel(h.ts);
     if (label !== lastDay) { html += `<div class="hist-day-label">${label}</div>`; lastDay = label; }
@@ -569,6 +570,9 @@ function renderTimeline(entries) {
 }
 
 function render() {
+  const clearBtn = document.getElementById('clear-hist-inline-btn');
+  clearBtn.style.display = (activeFilter === 'historial' && history.length > 0) ? 'inline-block' : 'none';
+
   if (activeFilter === 'seguimientos') {
     renderStatusDashboard(reminders);
     document.getElementById('lists').innerHTML = renderSeguimientosForm() + renderTimeline(progressEntries);
