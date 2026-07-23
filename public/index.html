@@ -98,16 +98,29 @@
   .modal-actions { display: flex; gap: 8px; margin-top: 4px; }
   .modal-actions .del-inline { background: none; border: 1.5px solid rgba(225,85,63,0.4); color: var(--coral); border-radius: 100px; padding: 7px 14px; font-family: 'JetBrains Mono', monospace; font-size: 12px; cursor: pointer; }
   .empty { text-align: center; padding: 40px 20px; color: rgba(251,247,240,0.4); font-family: 'Fraunces', serif; font-size: 16px; font-style: italic; }
-  .hist-day-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(251,247,240,0.4); margin: 18px 0 8px; }
-  .hist-item { display: flex; align-items: center; gap: 10px; padding: 9px 4px; border-bottom: 1px solid rgba(251,247,240,0.08); font-size: 13.5px; }
-  .hist-icon { width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+  .hist-day-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(251,247,240,0.4); margin: 22px 0 12px; }
+  .hist-card {
+    display: flex; align-items: flex-start; gap: 14px;
+    background: var(--paper); color: var(--ink);
+    border-radius: 8px; padding: 16px 16px; margin-bottom: 12px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+  }
+  .hist-icon { width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; margin-top: 2px; }
   .hist-icon.creado { background: rgba(232,163,61,0.2); color: var(--amber); }
   .hist-icon.completado_a_tiempo { background: rgba(107,144,128,0.25); color: var(--sage); }
   .hist-icon.completado_tarde { background: rgba(225,85,63,0.2); color: var(--coral); }
   .hist-icon.reabierto { background: rgba(251,247,240,0.12); color: rgba(251,247,240,0.7); }
   .hist-icon.eliminado { background: rgba(251,247,240,0.08); color: rgba(251,247,240,0.4); }
+  .hist-icon.reprogramada { background: rgba(61,90,128,0.15); color: var(--indigo); }
   .hist-text { flex: 1; min-width: 0; }
-  .hist-sub, .hist-time { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(251,247,240,0.4); }
+  .hist-title-row { font-family: 'Fraunces', serif; font-weight: 600; font-size: 15.5px; margin-bottom: 5px; line-height: 1.35; }
+  .hist-sub { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: rgba(27,27,47,0.5); margin-bottom: 8px; }
+  .ver-notas-btn {
+    font-family: 'JetBrains Mono', monospace; font-size: 11.5px; background: none;
+    border: 1px solid rgba(27,27,47,0.2); color: rgba(27,27,47,0.65);
+    border-radius: 100px; padding: 5px 12px; cursor: pointer;
+  }
+  .ver-notas-btn:hover { border-color: var(--ink); color: var(--ink); }
   .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--paper); padding: 10px 18px; border-radius: 6px; font-size: 13px; opacity: 0; transition: opacity 0.3s ease; pointer-events: none; }
   .toast.show { opacity: 1; }
 
@@ -121,18 +134,18 @@
   .progress-form textarea { min-height: 60px; font-family: 'Inter', sans-serif; }
   .progress-hint { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: rgba(27,27,47,0.5); margin: 0 0 10px; }
 
-  .timeline { position: relative; padding-left: 26px; margin-top: 8px; }
-  .timeline::before { content: ''; position: absolute; left: 6px; top: 6px; bottom: 6px; width: 2px; background: rgba(251,247,240,0.15); }
-  .tl-day-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(251,247,240,0.4); margin: 18px 0 10px -26px; padding-left: 26px; }
-  .tl-item { position: relative; margin-bottom: 16px; }
-  .tl-dot { position: absolute; left: -26px; top: 3px; width: 13px; height: 13px; border-radius: 50%; border: 2px solid var(--navy-deep); }
+  .timeline { position: relative; padding-left: 30px; margin-top: 14px; }
+  .timeline::before { content: ''; position: absolute; left: 8px; top: 8px; bottom: 8px; width: 2px; background: rgba(251,247,240,0.15); }
+  .tl-day-label { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(251,247,240,0.4); margin: 24px 0 14px -30px; padding-left: 30px; }
+  .tl-item { position: relative; margin-bottom: 20px; }
+  .tl-dot { position: absolute; left: -30px; top: 5px; width: 15px; height: 15px; border-radius: 50%; border: 2px solid var(--navy-deep); }
   .tl-dot.personal { background: var(--sage); }
   .tl-dot.trabajo { background: var(--indigo); }
-  .tl-card { background: var(--paper); color: var(--ink); border-radius: 3px; padding: 10px 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-  .tl-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
-  .tl-title { font-family: 'Fraunces', serif; font-weight: 600; font-size: 14.5px; }
+  .tl-card { background: var(--paper); color: var(--ink); border-radius: 8px; padding: 14px 16px; box-shadow: 0 4px 14px rgba(0,0,0,0.18); }
+  .tl-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+  .tl-title { font-family: 'Fraunces', serif; font-weight: 600; font-size: 15px; }
   .tl-time { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: rgba(27,27,47,0.45); white-space: nowrap; }
-  .tl-text { font-size: 13.5px; line-height: 1.5; }
+  .tl-text { font-size: 14px; line-height: 1.6; }
 </style>
 </head>
 <body>
@@ -355,9 +368,9 @@ async function openTaskTimeline(id, silent) {
   let entriesHtml = entries.map(e => {
     const time = new Date(e.ts).toLocaleString('es-CO', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
     if (e.kind === 'avance') {
-      return `<div class="hist-item"><div class="hist-icon creado">📝</div><div class="hist-text"><div>${escapeHTML(e.text)}</div><div class="hist-sub">avance</div></div><div class="hist-time">${time}</div></div>`;
+      return `<div class="hist-card"><div class="hist-icon creado">📝</div><div class="hist-text"><div class="hist-title-row">${escapeHTML(e.text)}</div><div class="hist-sub">avance · ${time}</div></div></div>`;
     }
-    return `<div class="hist-item"><div class="hist-icon ${e.event}">${TL_ICONS[e.event] || '•'}</div><div class="hist-text"><div>${TL_LABELS[e.event] || e.event}${e.note ? ': ' + escapeHTML(e.note) : ''}</div></div><div class="hist-time">${time}</div></div>`;
+    return `<div class="hist-card"><div class="hist-icon ${e.event}">${TL_ICONS[e.event] || '•'}</div><div class="hist-text"><div class="hist-title-row">${TL_LABELS[e.event] || e.event}</div><div class="hist-sub">${e.note ? escapeHTML(e.note) + ' · ' : ''}${time}</div></div></div>`;
   }).join('') || '<div class="empty">Todavía no hay nada registrado para esta tarea.</div>';
 
   const modalHtml = `
@@ -425,8 +438,9 @@ async function submitModalProgress(id) {
 }
 
 // ---------- Helpers de fecha/estado ----------
+const GRACE_MS = 45 * 60 * 1000; // 45 minutos de margen antes de marcar como vencida
 function deadlineOf(r) { if (!r.date) return null; return new Date(r.date + 'T' + (r.time || '23:59')); }
-function isPastDeadline(r) { const dl = deadlineOf(r); if (!dl) return false; return new Date() > dl; }
+function isPastDeadline(r) { const dl = deadlineOf(r); if (!dl) return false; return new Date() > new Date(dl.getTime() + GRACE_MS); }
 function isOverdue(r) { return !r.done && isPastDeadline(r); }
 function isToday(r) { if (!r.date) return false; return r.date === new Date().toISOString().slice(0,10); }
 function fmtMeta(r) {
@@ -504,16 +518,24 @@ function dayLabel(ts) {
 }
 
 function renderHistorial() {
-  if (history.length === 0) return '<div class="empty">Todavía no hay historial.</div>';
+  const completions = history.filter(h => h.event === 'completado_a_tiempo' || h.event === 'completado_tarde');
+  if (completions.length === 0) return '<div class="empty">Todavía no hay tareas completadas. Aquí van quedando a medida que las cumplas.</div>';
   let html = '', lastDay = null;
-  history.forEach(h => {
+  completions.forEach(h => {
     const label = dayLabel(h.ts);
     if (label !== lastDay) { html += `<div class="hist-day-label">${label}</div>`; lastDay = label; }
     const time = new Date(h.ts).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
-    html += `<div class="hist-item">
+    const taskExists = reminders.some(r => r.id === h.reminderId);
+    const notesLink = taskExists
+      ? `<button class="ver-notas-btn" onclick="openTaskTimeline('${h.reminderId}')">Ver notas →</button>`
+      : '';
+    html += `<div class="hist-card">
       <div class="hist-icon ${h.event}">${HIST_ICONS[h.event]}</div>
-      <div class="hist-text"><div>${HIST_LABELS[h.event]}: ${escapeHTML(h.title)}</div><div class="hist-sub">${h.category} · prioridad ${h.priority}</div></div>
-      <div class="hist-time">${time}</div>
+      <div class="hist-text">
+        <div class="hist-title-row">${HIST_LABELS[h.event]}: ${escapeHTML(h.title)}</div>
+        <div class="hist-sub">${h.category} · prioridad ${h.priority} · ${time}</div>
+        ${notesLink}
+      </div>
       <button class="del-btn" onclick="deleteHistoryEntry('${h.id}')">×</button>
     </div>`;
   });
@@ -526,7 +548,7 @@ async function deleteHistoryEntry(id) {
 }
 
 async function clearHistory() {
-  if (!confirm('¿Vaciar todo el historial? Esto no se puede deshacer.')) return;
+  if (!confirm('¿Vaciar la lista de completadas? Las notas y reprogramaciones de cada tarea se mantienen intactas. Esto no se puede deshacer.')) return;
   await fetch('/api/history', { method: 'DELETE' });
   await refreshAll();
   showToast('Historial vaciado ✓');
@@ -571,7 +593,8 @@ function renderTimeline(entries) {
 
 function render() {
   const clearBtn = document.getElementById('clear-hist-inline-btn');
-  clearBtn.style.display = (activeFilter === 'historial' && history.length > 0) ? 'inline-block' : 'none';
+  const hasCompletions = history.some(h => h.event === 'completado_a_tiempo' || h.event === 'completado_tarde');
+  clearBtn.style.display = (activeFilter === 'historial' && hasCompletions) ? 'inline-block' : 'none';
 
   if (activeFilter === 'seguimientos') {
     renderStatusDashboard(reminders);

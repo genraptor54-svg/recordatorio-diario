@@ -31,6 +31,8 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ---------- Utilidades ----------
+const GRACE_MS = 45 * 60 * 1000; // 45 minutos de margen antes de marcar como vencida
+
 function deadlineOf(r) {
   if (!r.date) return null;
   return new Date(r.date + 'T' + (r.time || '23:59'));
@@ -38,7 +40,7 @@ function deadlineOf(r) {
 function isPastDeadline(r) {
   const dl = deadlineOf(r);
   if (!dl) return false;
-  return new Date() > dl;
+  return new Date() > new Date(dl.getTime() + GRACE_MS);
 }
 function logHistory(db, r, event, note) {
   db.history.unshift({
@@ -231,10 +233,11 @@ app.delete('/api/history/:id', (req, res) => {
   res.json({ ok: true });
 });
 
-// Vaciar todo el historial
+// Vaciar el historial de completadas (no borra creado/reprogramada, esas alimentan
+// la bitacora de cada tarea y no queremos perderlas)
 app.delete('/api/history', (req, res) => {
   const db = readDB();
-  db.history = [];
+  db.history = db.history.filter(h => h.event !== 'completado_a_tiempo' && h.event !== 'completado_tarde');
   writeDB(db);
   res.json({ ok: true });
 });
